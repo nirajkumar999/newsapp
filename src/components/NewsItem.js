@@ -1,12 +1,13 @@
 import React, { Component } from "react";
+import default_image from "../default_image.png"
 
 export class NewsItem extends Component {
   render() {
     let {title,description,imageUrl,newsUrl} = this.props;
     return (
       <div className="my-3">
-      <div className="card" style={{width: "18rem"}}>
-        <img src={!imageUrl?"https://images.idgesg.net/images/article/2017/08/ubuntu-100734185-large.jpg?auto=webp&quality=85,70":imageUrl} className="card-img-top" alt="..."/>
+      <div className="card">
+        <img src={!imageUrl?default_image:imageUrl} className="card-img-top" alt="..."/>
           <div className="card-body">
             <h5 className="card-title">{title}...</h5>
             <p className="card-text">{description}...</p>

@@ -1,8 +1,23 @@
 import React, { Component } from 'react'
-import NewsItem from './NewsItem'
-import Spinner from './Spinner'
+import NewsItem from './NewsItem' ;
+import Spinner from './Spinner' ;
+import PropTypes from 'prop-types';
+
+// const apiKey = 'c8f17bd15a7d4b45be77b4d0cc0a614c';
+const apiKey = 'e4f52cf2b43f4a8d9e98d37368bd407e' ;
 
 export class News extends Component {
+    static defaultProps = {
+        country: 'in',
+        pageSize: 9,
+        category: 'general',
+    }
+    static propTypes = {
+        country: PropTypes.string,
+        pageSize: PropTypes.number,
+        category: PropTypes.string,
+    }
+
 
     constructor() {
         super();
@@ -17,10 +32,8 @@ export class News extends Component {
     async componentDidMount() {
 
         const { signal } = this.abortController;
-        // const apiKey = 'c8f17bd15a7d4b45be77b4d0cc0a614c';
-        const apiKey = 'e4f52cf2b43f4a8d9e98d37368bd407e';
-
-        const url = `https://newsapi.org/v2/top-headlines?country=in&apiKey=${apiKey}&page=1&pageSize=${this.props.pageSize}`;
+        
+        const url = `https://newsapi.org/v2/top-headlines?country=${this.props.country}&category=${this.props.category}&apiKey=${apiKey}&page=1&pageSize=${this.props.pageSize}`;
 
         // Set the User-Agent header
         const headers = {
@@ -42,9 +55,7 @@ export class News extends Component {
 
     handlePrevClick = async () => {
         const { signal } = this.abortController;
-        // const apiKey = 'c8f17bd15a7d4b45be77b4d0cc0a614c';
-        const apiKey = 'e4f52cf2b43f4a8d9e98d37368bd407e';
-        let url = `https://newsapi.org/v2/top-headlines?country=in&apiKey=${apiKey}&page=${this.state.page - 1}&pageSize=${this.props.pageSize}`;
+        let url = `https://newsapi.org/v2/top-headlines?country=${this.props.country}&category=${this.props.category}&apiKey=${apiKey}&page=${this.state.page - 1}&pageSize=${this.props.pageSize}`;
 
         // Set the User-Agent header
         const headers = {
@@ -67,10 +78,8 @@ export class News extends Component {
     handleNextClick = async () => {
 
         const { signal } = this.abortController;
-        // const apiKey = 'c8f17bd15a7d4b45be77b4d0cc0a614c';
-        const apiKey = 'e4f52cf2b43f4a8d9e98d37368bd407e';
-
-        let url = `https://newsapi.org/v2/top-headlines?country=in&apiKey=${apiKey}&page=${this.state.page + 1}&pageSize=${this.props.pageSize}`;
+        
+        let url = `https://newsapi.org/v2/top-headlines?country=${this.props.country}&category=${this.props.category}&apiKey=${apiKey}&page=${this.state.page + 1}&pageSize=${this.props.pageSize}`;
 
          // Set the User-Agent header
          const headers = {
@@ -92,7 +101,7 @@ export class News extends Component {
     render() {
         return (
             <div className="container my-3">
-                <h1 className='text-center'>NewsMonkey - Top Headlines</h1>
+                <h1 className='text-center' style={{margin: '35px 0px'}}>NewsMonkey - Top Headlines</h1>
                 {this.state.loading && <Spinner />}
                 {this.state.articles.length > 0 ? (
                     <div className="row">
@@ -102,7 +111,7 @@ export class News extends Component {
                             </div>
                         })}
                     </div>)
-                    : (<p>No articles to Display</p>)}
+                    : (<h3>Please Wait ... </h3>)}
 
                 <div className="container d-flex justify-content-center">
 

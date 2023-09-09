@@ -3,8 +3,9 @@ import NewsItem from './NewsItem';
 import Spinner from './Spinner';
 import PropTypes from 'prop-types';
 
-const apiKey = 'c8f17bd15a7d4b45be77b4d0cc0a614c';
-// const apiKey = 'e4f52cf2b43f4a8d9e98d37368bd407e';
+//const apiKey = 'c8f17bd15a7d4b45be77b4d0cc0a614c';
+//const apiKey = 'e4f52cf2b43f4a8d9e98d37368bd407e';
+const apiKey = 'e42188c058484d74b08bd58fed2bde25';
 
 function getCategoryIcon(category) {
     switch (category) {
@@ -51,21 +52,20 @@ export class News extends Component {
             currentDate: new Date()
         }
     }
-
-    async componentDidMount() {
+    
+    async updateNews(){
 
         const { signal } = this.abortController;
-
-        const url = `https://newsapi.org/v2/top-headlines?country=${this.props.country}&category=${this.props.category}&apiKey=${apiKey}&page=1&pageSize=${this.props.pageSize}`;
-
         // Set the User-Agent header
         const headers = {
-            'User-Agent': 'NewsMonkey/1.0',
-            'Authorization': `Bearer ${apiKey}`,
+                'User-Agent': 'NewsMonkey/1.0',
+                'Authorization': `Bearer ${apiKey}`,
         };
+        
+        const url = `https://newsapi.org/v2/top-headlines?country=${this.props.country}&category=${this.props.category}&apiKey=${apiKey}&page=${this.state.page}&pageSize=${this.props.pageSize}`;
 
-        this.setState({ loading: true });
-        let data = await fetch(url, { signal, headers });
+        this.setState({ loading: true })
+        let data = await fetch(url,{ signal, headers });
 
         let parsedData = await data.json();
         console.log(parsedData);
@@ -75,6 +75,11 @@ export class News extends Component {
             loading: false,
         });
 
+    }
+
+    componentDidMount() {
+
+        this.updateNews();
         this.intervalId = setInterval(() => {
             this.setState({ currentDate: new Date() });
         }, 1000);
@@ -86,49 +91,21 @@ export class News extends Component {
     }
 
     handlePrevClick = async () => {
-        const { signal } = this.abortController;
-        let url = `https://newsapi.org/v2/top-headlines?country=${this.props.country}&category=${this.props.category}&apiKey=${apiKey}&page=${this.state.page - 1}&pageSize=${this.props.pageSize}`;
-
-        // Set the User-Agent header
-        const headers = {
-            'User-Agent': 'NewsMonkey/1.0',
-            'Authorization': `Bearer ${apiKey}`,
-        };
-
-        this.setState({ loading: true });
-        let data = await fetch(url, { signal, headers });
-        let parsedData = await data.json();
-        console.log(parsedData);
-        this.setState({
-            page: this.state.page - 1,
-            articles: parsedData.articles,
-            loading: false
-        })
-
+        // Decrease the page value by 1
+        this.setState({ page: this.state.page - 1 }, () => {
+            // Call updateNews() after the state has been updated
+            this.updateNews();
+        });
     }
-
+    
     handleNextClick = async () => {
-
-        const { signal } = this.abortController;
-
-        let url = `https://newsapi.org/v2/top-headlines?country=${this.props.country}&category=${this.props.category}&apiKey=${apiKey}&page=${this.state.page + 1}&pageSize=${this.props.pageSize}`;
-
-        // Set the User-Agent header
-        const headers = {
-            'User-Agent': 'NewsMonkey/1.0',
-            'Authorization': `Bearer ${apiKey}`,
-        };
-
-        this.setState({ loading: true });
-        let data = await fetch(url, { signal, headers });
-
-        let parsedData = await data.json()
-        this.setState({
-            page: this.state.page + 1,
-            articles: parsedData.articles,
-            loading: false
-        })
+        // Increase the page value by 1
+        this.setState({ page: this.state.page + 1 }, () => {
+            // Call updateNews() after the state has been updated
+            this.updateNews();
+        });
     }
+    
 
     render() {
         return (
@@ -161,7 +138,7 @@ export class News extends Component {
 
                     <button disabled={this.state.page <= 1 || this.state.loading} type="button" className="btn btn-dark mx-3" onClick={this.handlePrevClick} style={{ width: '110px' }}> &larr; Previous</button>
 
-                    <button disabled={this.state.page + 1 > Math.ceil(this.state.totalResults / this.props.pageSize) || this.state.loading} type="button" className="btn btn-dark" onClick={this.handleNextClick} style={{ width: '110px' }}>Next &rarr;</button>
+                    <button disabled={this.state.page +1 > Math.ceil(this.state.totalResults / this.props.pageSize) || this.state.loading} type="button" className="btn btn-dark" onClick={this.handleNextClick} style={{ width: '110px' }}>Next &rarr;</button>
                 </div>
             </div>
         )

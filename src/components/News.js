@@ -28,13 +28,25 @@ function getCategoryIcon(category) {
     }
 }
 
+const dateOptions = {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    timeZoneName: 'short',
+  };
 
 export class News extends Component {
+    
     static defaultProps = {
         country: 'in',
         pageSize: 9,
         category: 'general',
     }
+
     static propTypes = {
         country: PropTypes.string,
         pageSize: PropTypes.number,
@@ -42,8 +54,8 @@ export class News extends Component {
     }
 
 
-    constructor() {
-        super();
+    constructor(props) {
+        super(props); // to use props inside our constructor, we need to pass props as an argument
         this.abortController = new AbortController();
         this.state = {
             articles: [],
@@ -51,6 +63,7 @@ export class News extends Component {
             page: 1,
             currentDate: new Date()
         }
+        document.title = `${this.props.category.charAt(0).toUpperCase() + this.props.category.slice(1)} - NewsMonkey`
     }
     
     async updateNews(){
@@ -106,22 +119,25 @@ export class News extends Component {
         });
     }
     
-
     render() {
+        const dateStr = this.state.currentDate.toLocaleString('en-IN', dateOptions);
+        
         return (
-
             <div className="container my-3">
                 <h1 className='text-center' style={{ margin: '35px 0px' }}>
                     NewsMonkey - Top Headlines - {this.props.category.charAt(0).toUpperCase() + this.props.category.slice(1)}
                     <i className={`fas ${getCategoryIcon(this.props.category)}`} style={{ marginLeft: '12px', fontSize: '50px' }}></i>
                 </h1>
+
                 <div className="text-center">
                     <p style={{ fontWeight: 'bold', fontSize: '22px' }}>
                         <i className="fas fa-calendar-alt" style={{ marginRight: '8px', fontSize: '30px'}}></i>
-                        {this.state.currentDate.toLocaleString()}
+                        {dateStr.replace('IST', '(IST)')}
                     </p>
                 </div>
+
                 {this.state.loading && <Spinner />}
+                
                 {this.state.articles.length > 0 ? (
                     <div className="row">
                         {!this.state.loading && this.state.articles.map((element) => {

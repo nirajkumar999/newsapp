@@ -2,10 +2,12 @@ import React, { Component } from 'react'
 import NewsItem from './NewsItem';
 import Spinner from './Spinner';
 import PropTypes from 'prop-types';
+import InfiniteScroll from "react-infinite-scroll-component";
+
 
 //const apiKey = 'c8f17bd15a7d4b45be77b4d0cc0a614c';
-//const apiKey = 'e4f52cf2b43f4a8d9e98d37368bd407e';
-const apiKey = 'e42188c058484d74b08bd58fed2bde25';
+const apiKey = 'e4f52cf2b43f4a8d9e98d37368bd407e';
+//const apiKey = 'e42188c058484d74b08bd58fed2bde25';
 
 function getCategoryIcon(category) {
     switch (category) {
@@ -59,8 +61,9 @@ export class News extends Component {
         this.abortController = new AbortController();
         this.state = {
             articles: [],
-            loading: false,
+            loading: true,
             page: 1,
+            totalResults: 0,
             currentDate: new Date()
         }
         document.title = `${this.props.category.charAt(0).toUpperCase() + this.props.category.slice(1)} - NewsMonkey`
@@ -91,7 +94,6 @@ export class News extends Component {
     }
 
     componentDidMount() {
-
         this.updateNews();
         this.intervalId = setInterval(() => {
             this.setState({ currentDate: new Date() });
@@ -103,27 +105,36 @@ export class News extends Component {
         clearInterval(this.intervalId);
     }
 
-    handlePrevClick = async () => {
-        // Decrease the page value by 1
-        this.setState({ page: this.state.page - 1 }, () => {
-            // Call updateNews() after the state has been updated
-            this.updateNews();
+    fetchMoreData = async () => {  
+        this.setState({page: this.state.page + 1})
+        const { signal } = this.abortController;
+        // Set the User-Agent header
+        const headers = {
+                'User-Agent': 'NewsMonkey/1.0',
+                'Authorization': `Bearer ${apiKey}`,
+        };
+        console.log("fetch1", this.state.page)
+        const url = `https://newsapi.org/v2/top-headlines?country=${this.props.country}&category=${this.props.category}&apiKey=${apiKey}&page=${this.state.page + 1}&pageSize=${this.props.pageSize}`;
+        console.log("fetch2", this.state.page)
+        this.setState({ loading: true })
+        let data = await fetch(url,{ signal, headers });
+
+        let parsedData = await data.json();
+        console.log(parsedData);
+        this.setState({
+            articles: this.state.articles.concat(parsedData.articles),
+            totalResults: parsedData.totalResults,
+            loading:false
         });
-    }
-    
-    handleNextClick = async () => {
-        // Increase the page value by 1
-        this.setState({ page: this.state.page + 1 }, () => {
-            // Call updateNews() after the state has been updated
-            this.updateNews();
-        });
-    }
+      };
     
     render() {
         const dateStr = this.state.currentDate.toLocaleString('en-IN', dateOptions);
         
         return (
-            <div className="container my-3">
+
+            
+            <>
                 <h1 className='text-center' style={{ margin: '35px 0px' }}>
                     NewsMonkey - Top Headlines - {this.props.category.charAt(0).toUpperCase() + this.props.category.slice(1)}
                     <i className={`fas ${getCategoryIcon(this.props.category)}`} style={{ marginLeft: '12px', fontSize: '50px' }}></i>
@@ -138,25 +149,28 @@ export class News extends Component {
 
                 {this.state.loading && <Spinner />}
                 
-                {this.state.articles.length > 0 ? (
+                <InfiniteScroll
+                    dataLength={this.state.articles.length}
+                    next={this.fetchMoreData}
+                    //use < instead of !==
+                    hasMore={this.state.articles.length < this.state.totalResults}
+                    loader={this.state.loading && <Spinner/>}
+                > 
+                    <div className="container">
+
                     <div className="row">
-                        {!this.state.loading && this.state.articles.map((element) => {
-                            return <div className="col-md-4" key={element.url}>
-                                <NewsItem title={element.title ? element.title : ""} description={element.description ? element.description : ""} imageUrl={element.urlToImage} newsUrl={element.url} author={element.author} date={element.publishedAt} source={element.source.name}/>
+                        {this.state.articles.map((element,index) => {
+                            return <div className="col-md-4" key={index}>
+                                <NewsItem title={element.title ? element.title : ""} description={element.description ? element.description : ""} imageUrl={element.urlToImage} newsUrl={element.url} author={element.author} date={element.publishedAt} source={element.source.name} />
                             </div>
                         })}
-                    </div>)
-                    : (<h3>Please Wait ... </h3>)}
+                    </div>
+                    </div> 
+                </InfiniteScroll>
+               
 
-                <div className="container d-flex justify-content-center">
-
-                    {/* if the page is loading i have disabled the button */}
-
-                    <button disabled={this.state.page <= 1 || this.state.loading} type="button" className="btn btn-dark mx-3" onClick={this.handlePrevClick} style={{ width: '110px' }}> &larr; Previous</button>
-
-                    <button disabled={this.state.page +1 > Math.ceil(this.state.totalResults / this.props.pageSize) || this.state.loading} type="button" className="btn btn-dark" onClick={this.handleNextClick} style={{ width: '110px' }}>Next &rarr;</button>
-                </div>
-            </div>
+               
+            </>
         )
     }
 }

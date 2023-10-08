@@ -8,9 +8,10 @@ import { faBasketball, faBriefcase, faCircleUp, faFilm, faFlaskVial, faGlobe, fa
 import { Button } from 'react-bootstrap';
 
 
-//const apiKey = 'c8f17bd15a7d4b45be77b4d0cc0a614c';
-//const apiKey = 'e4f52cf2b43f4a8d9e98d37368bd407e';
-const apiKey = 'e42188c058484d74b08bd58fed2bde25';
+// const apiKey = 'c8f17bd15a7d4b45be77b4d0cc0a614c';
+// const apiKey = 'e4f52cf2b43f4a8d9e98d37368bd407e';
+// const apiKey = 'e42188c058484d74b08bd58fed2bde25';
+const apiKey = 'a8da3d50d8f04de7b4b315e64eb881d0'
 
 const getCategoryIcon = (category) => {
     switch (category) {
@@ -51,8 +52,8 @@ const News = (props) => {
     const [page, setPage] = useState(1);
     const [totalResults, setTotalResults] = useState(0);
     const [currentDate, setCurrentDate] = useState(new Date());
-    const [abortController, setAbortController] = useState (new AbortController());
-    // document.title = `${props.category.charAt(0).toUpperCase() + props.category.slice(1)} - NewsMonkey`
+    const abortController = new AbortController();
+   
 
     const scrollToTop = () => {
         window.scrollTo({
@@ -95,6 +96,7 @@ const News = (props) => {
     }
 
     useEffect(() => {
+        document.title = `${props.category.charAt(0).toUpperCase() + props.category.slice(1)} - NewsMonkey` ;
         updateNews();
         const intervalId = setInterval(() => {
             setCurrentDate(new Date());
@@ -102,13 +104,14 @@ const News = (props) => {
         return () => {
             clearInterval(intervalId);
           };
+          // eslint-disable-next-line
     }, []);
 
     const fetchMoreData = async () => {
 
-        setPage(page + 1);
-
         const url = `https://newsapi.org/v2/top-headlines?country=${props.country}&category=${props.category}&apiKey=${apiKey}&page=${page + 1}&pageSize=${props.pageSize}`;
+
+        setPage(page + 1);
 
         setLoading(true);
         let data = await fetch(url);
@@ -125,7 +128,7 @@ const News = (props) => {
 
 
         <>
-            <h1 className='text-center' style={{ margin: '35px 0px' }}>
+            <h1 className='text-center' style={{ margin: '35px 0px ', marginTop: '90px' }}>
                 NewsMonkey - Top Headlines - {props.category.charAt(0).toUpperCase() + props.category.slice(1)}&nbsp;&nbsp;
                 <FontAwesomeIcon icon={getCategoryIcon(props.category)} beatFade size='2xl' />
 

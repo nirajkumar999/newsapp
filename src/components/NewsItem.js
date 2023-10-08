@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React from "react";
 import default_image from "../default_image.png"
 
 function calculateDaysAgo(date) {
@@ -22,10 +22,9 @@ const dateOptions = {
   timeZoneName: 'short',
 };
 
-export class NewsItem extends Component {
+const NewsItem = (props) => {
   
-  render() {
-    let {title,description,imageUrl,newsUrl, author, date, source} = this.props;
+    let {title,description,imageUrl,newsUrl, author, date, source} = props;
     const daysAgo = calculateDaysAgo(date);
 
     return (
@@ -46,7 +45,6 @@ export class NewsItem extends Component {
       </div>
       </div>
     )
-  }
 }
 
 export default NewsItem;

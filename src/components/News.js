@@ -1,4 +1,4 @@
-import React, { Component } from 'react'
+import React, { useEffect, useState } from 'react'
 import NewsItem from './NewsItem';
 import Spinner from './Spinner';
 import PropTypes from 'prop-types';
@@ -8,11 +8,11 @@ import { faBasketball, faBriefcase, faCircleUp, faFilm, faFlaskVial, faGlobe, fa
 import { Button } from 'react-bootstrap';
 
 
-const apiKey = 'c8f17bd15a7d4b45be77b4d0cc0a614c';
+//const apiKey = 'c8f17bd15a7d4b45be77b4d0cc0a614c';
 //const apiKey = 'e4f52cf2b43f4a8d9e98d37368bd407e';
-//const apiKey = 'e42188c058484d74b08bd58fed2bde25';
+const apiKey = 'e42188c058484d74b08bd58fed2bde25';
 
-function getCategoryIcon(category) {
+const getCategoryIcon = (category) => {
     switch (category) {
         case 'general':
             return faGlobe;
@@ -44,157 +44,143 @@ const dateOptions = {
     timeZoneName: 'short',
 };
 
-export class News extends Component {
+const News = (props) => {
 
-    static defaultProps = {
-        country: 'in',
-        pageSize: 9,
-        category: 'general',
-    }
+    const [articles, setArticles] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [page, setPage] = useState(1);
+    const [totalResults, setTotalResults] = useState(0);
+    const [currentDate, setCurrentDate] = useState(new Date());
+    const [abortController, setAbortController] = useState (new AbortController());
+    // document.title = `${props.category.charAt(0).toUpperCase() + props.category.slice(1)} - NewsMonkey`
 
-    static propTypes = {
-        country: PropTypes.string,
-        pageSize: PropTypes.number,
-        category: PropTypes.string,
-    }
-
-
-    constructor(props) {
-        super(props); // to use props inside our constructor, we need to pass props as an argument
-        this.abortController = new AbortController();
-        this.state = {
-            articles: [],
-            loading: true,
-            page: 1,
-            totalResults: 0,
-            currentDate: new Date()
-        }
-        document.title = `${this.props.category.charAt(0).toUpperCase() + this.props.category.slice(1)} - NewsMonkey`
-    }
-
-    scrollToTop = () => {
+    const scrollToTop = () => {
         window.scrollTo({
             top: 0,
             behavior: "smooth" // For smooth scrolling
         });
     };
 
-    async updateNews() {
+    const updateNews = async () => {
 
-        const { signal } = this.abortController;
+        const { signal } = abortController;
         // Set the User-Agent header
         const headers = {
             'User-Agent': 'NewsMonkey/1.0',
             'Authorization': `Bearer ${apiKey}`,
         };
 
-        this.props.setProgress(10);
+        props.setProgress(10);
 
-        const url = `https://newsapi.org/v2/top-headlines?country=${this.props.country}&category=${this.props.category}&apiKey=${apiKey}&page=${this.state.page}&pageSize=${this.props.pageSize}`;
+        const url = `https://newsapi.org/v2/top-headlines?country=${props.country}&category=${props.category}&apiKey=${apiKey}&page=${page}&pageSize=${props.pageSize}`;
 
-        this.setState({ loading: true })
+        setLoading(true);
 
         let data = await fetch(url, { signal, headers });
 
-        this.props.setProgress(30);
+        props.setProgress(30);
 
         let parsedData = await data.json();
 
-        this.props.setProgress(70);
+        props.setProgress(70);
 
         console.log(parsedData);
-        this.setState({
-            articles: parsedData.articles || [],
-            totalResults: parsedData.totalResults,
-            loading: false,
-        });
-        this.props.setProgress(100);
+
+        setArticles(parsedData.articles || []);
+        setTotalResults(parsedData.totalResults);
+        setLoading(false);
+        props.setProgress(100);
 
 
     }
 
-    componentDidMount() {
-        this.updateNews();
-        this.intervalId = setInterval(() => {
-            this.setState({ currentDate: new Date() });
+    useEffect(() => {
+        updateNews();
+        const intervalId = setInterval(() => {
+            setCurrentDate(new Date());
         }, 1000);
-    }
+        return () => {
+            clearInterval(intervalId);
+          };
+    }, []);
 
-    componentWillUnmount() {
-        // Clear the interval when the component is unmounted to prevent memory leaks
-        clearInterval(this.intervalId);
-    }
+    const fetchMoreData = async () => {
 
-    fetchMoreData = async () => {
+        setPage(page + 1);
 
-        this.setState({ page: this.state.page + 1 })
+        const url = `https://newsapi.org/v2/top-headlines?country=${props.country}&category=${props.category}&apiKey=${apiKey}&page=${page + 1}&pageSize=${props.pageSize}`;
 
-        const url = `https://newsapi.org/v2/top-headlines?country=${this.props.country}&category=${this.props.category}&apiKey=${apiKey}&page=${this.state.page + 1}&pageSize=${this.props.pageSize}`;
-
-        this.setState({ loading: true })
+        setLoading(true);
         let data = await fetch(url);
 
         let parsedData = await data.json();
         console.log(parsedData);
-        this.setState({
-            articles: this.state.articles.concat(parsedData.articles),
-            totalResults: parsedData.totalResults,
-            loading: false
-        });
+        setArticles(articles.concat(parsedData.articles));
+        setTotalResults(parsedData.totalResults);
+        setLoading(false);
     };
+    const dateStr = currentDate.toLocaleString('en-IN', dateOptions);
 
-    render() {
-        const dateStr = this.state.currentDate.toLocaleString('en-IN', dateOptions);
-
-        return (
+    return (
 
 
-            <>
-                    <h1 className='text-center' style={{ margin: '35px 0px' }}>
-                        NewsMonkey - Top Headlines - {this.props.category.charAt(0).toUpperCase() + this.props.category.slice(1)}&nbsp;
-                        <FontAwesomeIcon icon={getCategoryIcon(this.props.category)} beatFade size='2xl'/>
-                        
-                    </h1>
+        <>
+            <h1 className='text-center' style={{ margin: '35px 0px' }}>
+                NewsMonkey - Top Headlines - {props.category.charAt(0).toUpperCase() + props.category.slice(1)}&nbsp;&nbsp;
+                <FontAwesomeIcon icon={getCategoryIcon(props.category)} beatFade size='2xl' />
 
-                    <div className="text-center">
-                        <p style={{ fontWeight: 'bold', fontSize: '22px' }}>
-                            <i className="fas fa-calendar-alt" style={{ marginRight: '8px', fontSize: '30px' }}></i>
-                            {dateStr.replace('IST', '(IST)')}
-                        </p>
-                    </div>
+            </h1>
 
-                    {this.state.loading && <Spinner />}
+            <div className="text-center">
+                <p style={{ fontWeight: 'bold', fontSize: '22px' }}>
+                    <i className="fas fa-calendar-alt" style={{ marginRight: '8px', fontSize: '30px' }}></i>
+                    {dateStr.replace('IST', '(IST)')}
+                </p>
+            </div>
 
-                    <InfiniteScroll
-                        dataLength={this.state.articles.length}
-                        next={this.fetchMoreData}
-                        //use < instead of !==
-                        hasMore={this.state.articles.length < this.state.totalResults}
-                        loader={this.state.loading && <Spinner />}
-                    >
-                        <div className="container">
+            {loading && <Spinner />}
 
-                            <div className="row">
-                                {this.state.articles.map((element, index) => {
-                                    return <div className="col-md-4" key={index}>
-                                        <NewsItem title={element.title ? element.title : ""} description={element.description ? element.description : ""} imageUrl={element.urlToImage} newsUrl={element.url} author={element.author} date={element.publishedAt} source={element.source.name} />
-                                    </div>
-                                })}
+            <InfiniteScroll
+                dataLength={articles.length}
+                next={fetchMoreData}
+                //use < instead of !==
+                hasMore={articles.length < totalResults}
+                loader={loading && <Spinner />}
+            >
+                <div className="container">
+
+                    <div className="row">
+                        {articles.map((element, index) => {
+                            return <div className="col-md-4" key={index}>
+                                <NewsItem title={element.title ? element.title : ""} description={element.description ? element.description : ""} imageUrl={element.urlToImage} newsUrl={element.url} author={element.author} date={element.publishedAt} source={element.source.name} />
                             </div>
-                        </div>
-                    </InfiniteScroll>
-
-
-                {this.state.loading === false && this.state.articles.length >= this.state.totalResults && (
-                    <div className="text-center">
-                        <Button variant="primary" onClick={this.scrollToTop}>
-                            Back To Top &nbsp;<FontAwesomeIcon icon={faCircleUp} beat size="xl" />
-                        </Button>
+                        })}
                     </div>
-                )}
-            </>
-        )
-    }
+                </div>
+            </InfiniteScroll>
+
+
+            {loading === false && articles.length >= totalResults && (
+                <div className="text-center">
+                    <Button variant="primary" onClick={scrollToTop}>
+                        Back To Top &nbsp;<FontAwesomeIcon icon={faCircleUp} beat size="xl" />
+                    </Button>
+                </div>
+            )}
+        </>
+    )
+}
+
+News.defaultProps = {
+    country: 'in',
+    pageSize: 9,
+    category: 'general',
+}
+
+News.propTypes = {
+    country: PropTypes.string,
+    pageSize: PropTypes.number,
+    category: PropTypes.string,
 }
 
 export default News

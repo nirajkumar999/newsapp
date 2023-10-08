@@ -4,7 +4,7 @@ import Spinner from './Spinner';
 import PropTypes from 'prop-types';
 import InfiniteScroll from "react-infinite-scroll-component";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCircleUp } from '@fortawesome/free-solid-svg-icons';
+import { faBasketball, faBriefcase, faCircleUp, faFilm, faFlaskVial, faGlobe, faHeartPulse, faLaptopCode } from '@fortawesome/free-solid-svg-icons';
 import { Button } from 'react-bootstrap';
 
 
@@ -15,19 +15,19 @@ const apiKey = 'c8f17bd15a7d4b45be77b4d0cc0a614c';
 function getCategoryIcon(category) {
     switch (category) {
         case 'general':
-            return 'fa-globe';
+            return faGlobe;
         case 'entertainment':
-            return 'fa-film';
+            return faFilm;
         case 'business':
-            return 'fa-briefcase';
+            return faBriefcase;
         case 'sports':
-            return 'fa-futbol';
+            return faBasketball;
         case 'science':
-            return 'fa-flask';
+            return faFlaskVial;
         case 'technology':
-            return 'fa-laptop';
+            return faLaptopCode;
         case 'health':
-            return 'fa-heartbeat';
+            return faHeartPulse;
         default:
             return ''; // Return an empty string for unknown categories
     }
@@ -151,8 +151,9 @@ export class News extends Component {
 
             <>
                     <h1 className='text-center' style={{ margin: '35px 0px' }}>
-                        NewsMonkey - Top Headlines - {this.props.category.charAt(0).toUpperCase() + this.props.category.slice(1)}
-                        <i className={`fas ${getCategoryIcon(this.props.category)}`} style={{ marginLeft: '12px', fontSize: '50px' }}></i>
+                        NewsMonkey - Top Headlines - {this.props.category.charAt(0).toUpperCase() + this.props.category.slice(1)}&nbsp;
+                        <FontAwesomeIcon icon={getCategoryIcon(this.props.category)} beatFade size='2xl'/>
+                        
                     </h1>
 
                     <div className="text-center">
